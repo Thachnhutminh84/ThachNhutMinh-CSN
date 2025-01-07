@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Di Tích Lịch Sử Tỉnh Trà Vinh</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+
+    <script>
+        window.searchLocations = function () {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase().trim();
+            const currentPage = window.location.pathname;
+
+            if (currentPage.includes('di-tich-quoc-gia.html')) {
+                console.log('Đang tìm kiếm trong trang di tích quốc gia');
+
+                setTimeout(() => {
+                    const siteElements = document.querySelectorAll('.site-item');
+                    console.log('Số lượng phần tử tìm thấy:', siteElements.length);
+
+                    clearHighlights();
+                    removeOldMessage();
+
+                    if (searchTerm === '') {
+                        showAllSites(siteElements);
+                        return;
+                    }
+
+                    siteElements.forEach(element => {
+                        console.log('Đang kiểm tra phần tử:', element.textContent);
+
+                        const content = element.textContent.toLowerCase();
+                        const name = element.querySelector('h3')?.textContent.toLowerCase() || '';
+                        const description = element.querySelector('.description')?.textContent.toLowerCase() || '';
+                        const location = element.querySelector('.location')?.textContent.toLowerCase() || '';
+
+                        if (content.includes(searchTerm) ||
+                            name.includes(searchTerm) ||
+                            description.includes(searchTerm) ||
+                            location.includes(searchTerm)) {
+                            element.style.display = 'block';
+                            highlightText(element, searchTerm);
+                        } else {
+                            element.style.display = 'none';
+                        }
+                    });
+
+                    showSearchResults(true, siteElements.length, searchTerm);
+                }, 100);
+            }
+        };
+
+        window.clearHighlights = function () { /* ... */ };
+        window.removeOldMessage = function () { /* ... */ };
+        window.showAllSites = function (elements) {
+            elements.forEach(element => {
+                element.style.display = 'block';
+            });
+            removeOldMessage();
+        };
+        window.highlightText = function (element, searchTerm) { /* ... */ };
+        window.showSearchResults = function (found, resultCount, searchTerm) { /* ... */ };
+    </script>
+</head>
+
+<body class="bg-gray-100">
+
+    <div id="header-container"></div>
+    <script>
+        fetch('/components/header.html')
+            .then(response => response.text())
+            .then(data => {
+                document.getElementById('header-container').innerHTML = data;
+                const searchInput = document.getElementById('searchInput');
+                if (searchInput) {
+                    searchInput.addEventListener('keyup', function (event) {
+                        if (event.key === 'Enter') {
+                            window.searchLocations();
+                        }
+                        if (this.value === '') {
+                            const siteElements = document.querySelectorAll('.site-item');
+                            showAllSites(siteElements);
+                        }
+                    });
+                }
+            });
+    </script>
+    <section id="di-tich-quoc-gia" class="container mx-auto px-4 py-12 bg-gray-100">
+        <!-- Content will be rendered here -->
+    </section>
+
+    <div id="footer-container"></div>
+    <script>
+        fetch('/components/footer.html')
+            .then(response => response.text())
+            .then(data => {
+                document.getElementById('footer-container').innerHTML = data;
+            });
+    </script>
+
+    <script src="site-renderer.js"></script>
+    <script src="booking-manager.js"></script>
+    <script>
+        // Khai báo biến ở phạm vi toàn cục
+        let bookingManager;
+        let renderer;
+
+        // Tải data.json bằng fetch
+        fetch('data.json')
+            .then(response => response.json())
+            .then(data => {
+                const nationalSites = data;
+                // Khởi tạo các đối tượng và gán vào biến toàn cục
+                bookingManager = new BookingManager();
+                renderer = new SiteRenderer(nationalSites, bookingManager); // Truyền bookingManager vào SiteRenderer
+                renderer.render();
+            })
+            .catch(error => {
+                console.error('Error loading data:', error);
+                document.getElementById('di-tich-quoc-gia').innerHTML =
+                    '<p class="text-red-500">Có lỗi khi tải dữ liệu. Vui lòng thử lại sau.</p>';
+            });
+
+        function toggleDetails(id) {
+            const details = document.getElementById(id);
+            const icon = document.getElementById(id.replace('details', 'icon'));
+            if (details && icon) {
+                details.classList.toggle('hidden');
+                icon.style.transform = details.classList.contains('hidden') ? '' : 'rotate(180deg)';
+            }
+        }
+    </script>
+</body>
+
+</html>
